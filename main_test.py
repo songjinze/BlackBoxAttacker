@@ -6,6 +6,7 @@ from main import aiTest
 from models import load_model
 from skimage.measure import compare_ssim as ssim
 from models.basicModel import Model
+import time
 
 img_rows, img_cols = 28, 28
 num_classes = 10
@@ -29,8 +30,6 @@ else:
 
 x_train = x_train.astype('float32')
 x_test = x_test.astype('float32')
-x_train /= 255
-x_test /= 255
 print('x_train shape:', x_train.shape)
 print(x_train.shape[0], 'train samples')
 print(x_test.shape[0], 'test samples')
@@ -46,25 +45,28 @@ y_test = keras.utils.to_categorical(y_test, num_classes)
 # loaded_model = model.model
 loaded_model=tf.keras.models.load_model("models/mnist_model.h5")
 
-test_pic_num = 100
+test_pic_num = 500
 x_test = x_test[:test_pic_num]
 y_test = y_test[:test_pic_num]
 attack_sample = aiTest(x_test, (28, 28, 1))
 count = 0.0
 s = 0.0
+start=time.clock()
 for i in range(0, test_pic_num):
-    origin_img = np.expand_dims(x_test[i], 0)[:,:,:,0]
-    attack_img = np.expand_dims(attack_sample[i], 0)[:,:,:,0]
-    # origin_img = np.expand_dims(x_test[i], 0)
-    # attack_img = np.expand_dims(attack_sample[i], 0)
+    origin_img = np.expand_dims(x_test[i], 0)[:,:,:,0]/255
+    attack_img = np.expand_dims(attack_sample[i], 0)[:,:,:,0]/255
+    # origin_img = np.expand_dims(x_test[i], 0)/255
+    # attack_img = np.expand_dims(attack_sample[i], 0)/255
     actual_class = np.argmax(loaded_model.predict(origin_img)[0])
     # print("actual: ", actual_class)
     wrong_class = np.argmax(loaded_model.predict(attack_img)[0])
     # wrong_class=np.argmax(l_model.predict(origin_img)[0])
     # print("wrong: ", wrong_class)
-    #s += ssim(origin_img[0,:,:,0], attack_img[0,:,:,0], multichannel=True) / test_pic_num
-    s += ssim(origin_img[0], attack_img[0], multichannel=True) / test_pic_num
+    # s += ssim(origin_img[0,:,:,0]*255, attack_img[0,:,:,0]*255, multichannel=True) / test_pic_num
+    s += ssim(origin_img[0]*255, attack_img[0]*255, multichannel=True) / test_pic_num
     if actual_class != wrong_class:
         count += 1
+end=time.clock()
+print(end-start)
 print(count / test_pic_num)
 print("ssim:", s)

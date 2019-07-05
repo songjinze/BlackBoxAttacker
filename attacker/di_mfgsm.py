@@ -5,6 +5,7 @@ from keras import backend as K
 
 def create_one_attack_pic(model, img):
     # original_image = image.img_to_array(img)
+    #print(img)
     hacked_image = np.copy(img)
     hacked_image = np.expand_dims(hacked_image, 0)
 
@@ -47,9 +48,10 @@ def create_one_attack_pic(model, img):
         #n=gradients
         hacked_image -= n * e
         hacked_image = np.clip(hacked_image, max_change_below, max_change_above)
-        hacked_image = np.clip(hacked_image, -1.0, 1.0)
+        hacked_image = np.clip(hacked_image, 0, 1.0)
         index += 1
     print("batch:{} Cost:{:.8}%".format(index, cost * 100))
+    # print(hacked_image)
     return hacked_image[0]
 
 
@@ -61,8 +63,8 @@ def get_gradient(gradients, old_gradients):
 
 
 def input_diversity(input_tensor):
-    #return tf.cond(tf.random_uniform(shape=[1])[0] < tf.constant(0.6), lambda: change_shape(input_tensor), lambda: input_tensor)
-    return input_tensor
+    return tf.cond(tf.random_uniform(shape=[1])[0] < tf.constant(0.5), lambda: change_shape(input_tensor), lambda: input_tensor)
+    # return input_tensor
 
 def change_shape(input_tensor):
     lowWidth = 22

@@ -8,12 +8,14 @@ def aiTest(images, shape):
     result = []
     model = get_basic_model()
     model2=get_basic_model2()
+    images=images/255
     for i in images:
         img1 = create_sample(model, i)
         #img2 = create_sample(model2, i)
         #img = (img1 + img2) / 2 
         result.append(img1)
-    return np.asarray(result)
+    result = np.asarray(result)*255
+    return result
 
 
 def get_basic_model():
